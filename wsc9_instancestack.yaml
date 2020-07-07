@@ -13,6 +13,20 @@ Parameters:
       - t3.small
       - t3.medium
     ConstraintDescription: Must be a valid Cloud9 instance type
+  ExampleC9EnvType: 
+    Description: Environment type.
+    Default: self
+    Type: String
+    AllowedValues: 
+      - self
+      - 3rdParty
+    ConstraintDescription: must specify self or 3rdParty.
+  ExampleOwnerArn: 
+    Type: String
+    Description: The Arn of the Cloud9 Owner to be set if 3rdParty deployment.
+
+Conditions: 
+  Create3rdPartyResources: !Equals [ !Ref ExampleC9EnvType, 3rdParty ]
 
 Resources:
 
@@ -277,6 +291,7 @@ Resources:
         Ref: ExampleC9InstanceType
       Name:
         Ref: AWS::StackName
+      OwnerArn: !If [Create3rdPartyResources, !Ref ExampleOwnerArn, !Ref "AWS::NoValue" ]
       Tags: 
         - 
           Key: SSMBootstrap
