@@ -1,7 +1,7 @@
 #!/bin/bash
 # Simple bash for Workshop C9 Deployment. 
 # will move towards real automation tools later on
-# (c) by David Surey, Amazon Web Services
+# created by David Surey, Amazon Web Services
 # suredavi@amazon.de
 # NOT FOR PRODUCTION USE - Only for Workshop purposes
 C9STACK="ExampleC9"

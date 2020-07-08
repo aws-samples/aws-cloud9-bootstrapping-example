@@ -4,6 +4,7 @@
 This example Cloudformation Deployment shows how to deploy an AWS Cloud9 Environment for yourself or team members and run an automated bootstrap so you can install software components needed on the fly. 
 This is usefull for workshops, unified deployments, etc. 
 
+you may use the template directly or leverage the bash shell script for deployment
 ### Parameters
 
 There are a few parameters you might want to adjust. 
