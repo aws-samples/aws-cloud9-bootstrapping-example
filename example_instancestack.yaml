@@ -24,12 +24,15 @@ Parameters:
   ExampleOwnerArn: 
     Type: String
     Description: The Arn of the Cloud9 Owner to be set if 3rdParty deployment.
+  ExampleC9InstanceVolumeSize: 
+    Type: Number
+    Description: The Size in GB of the Cloud9 Instance Volume. 
+    Default: 15
 
 Conditions: 
   Create3rdPartyResources: !Equals [ !Ref ExampleC9EnvType, 3rdParty ]
 
 Resources:
-
 ################## PERMISSIONS AND ROLES #################
   ExampleC9Role:
     Type: AWS::IAM::Role
@@ -142,15 +145,11 @@ Resources:
         ZipFile: |
           from __future__ import print_function
           import boto3
-          # import loggings
           import json
           import os
           import time
           import traceback
           import cfnresponse
-          
-          # logger = logging.getLogger()
-          # logger.setLevel(logging.INFO)
           
           def lambda_handler(event, context):
               # logger.info('event: {}'.format(event))
@@ -225,11 +224,51 @@ Resources:
             - alternatives --set python /usr/bin/python3.6
             - echo '=== INSTALL and CONFIGURE default software components ==='
             - sudo -H -u ec2-user bash -c "pip install --user -U boto boto3 botocore awscli aws-sam-cli"
+            - echo '=== Resizing the Instance volume'
+            - !Sub SIZE=${ExampleC9InstanceVolumeSize}
+            - !Sub REGION=${AWS::Region}
+            - |
+              INSTANCEID=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+              VOLUMEID=$(aws ec2 describe-instances \
+                --instance-id $INSTANCEID \
+                --query "Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId" \
+                --output text --region $REGION)
+              aws ec2 modify-volume --volume-id $VOLUMEID --size $SIZE --region $REGION
+              while [ \
+                "$(aws ec2 describe-volumes-modifications \
+                  --volume-id $VOLUMEID \
+                  --filters Name=modification-state,Values="optimizing","completed" \
+                  --query "length(VolumesModifications)"\
+                  --output text --region $REGION)" != "1" ]; do
+              sleep 1
+              done
+              if [ $(readlink -f /dev/xvda) = "/dev/xvda" ]
+              then
+                sudo growpart /dev/xvda 1
+                STR=$(cat /etc/os-release)
+                SUB="VERSION_ID=\"2\""
+                if [[ "$STR" == *"$SUB"* ]]
+                then
+                  sudo xfs_growfs -d /
+                else
+                  sudo resize2fs /dev/xvda1
+                fi
+              else
+                sudo growpart /dev/nvme0n1 1
+                STR=$(cat /etc/os-release)
+                SUB="VERSION_ID=\"2\""
+                if [[ "$STR" == *"$SUB"* ]]
+                then
+                  sudo xfs_growfs -d /
+                else
+                  sudo resize2fs /dev/nvme0n1p1
+                fi
+              fi
             - echo '=== INSTALL and CONFIGURE amplify and setting ENVIRONMENT VARS ==='
             - sudo -H -u ec2-user bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash" && sudo -H -u ec2-user bash -c ". ~/.nvm/nvm.sh && nvm install node" && sudo -H -u ec2-user bash -c ". ~/.nvm/nvm.sh && npm install -g @aws-amplify/cli"
-            - echo '=== INSTALL and CONFIGURE IaaC Tools ==='
+            - echo '=== INSTALL and CONFIGURE IaC Tools ==='
             - sudo -H -u ec2-user bash -c ". ~/.nvm/nvm.sh && npm install -g aws-cdk"
-            - curl --silent --location -o terraform_0.12.20_linux_amd64.zip https://releases.hashicorp.com/terraform/0.12.20/terraform_0.12.20_linux_amd64.zip && unzip terraform_0.12.20_linux_amd64.zip && mv -f terraform /usr/bin/
+            - curl --silent --location -o terraform_0.12.20_linux_amd64.zip https://releases.hashicorp.com/terraform/0.13.5/terraform_0.13.5_linux_amd64.zip && unzip terraform_0.13.5_linux_amd64.zip && mv -f terraform /usr/bin/
             - sudo -H -u ec2-user bash -c "pip install --user -U ansible"
             - echo '=== CONFIGURE kubecrtl and setting ENVIRONMENT VARS ==='
             - curl --silent --location -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl

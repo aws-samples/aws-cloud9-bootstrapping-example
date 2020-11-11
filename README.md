@@ -14,6 +14,7 @@ There are a few parameters you might want to adjust.
 | ExampleC9InstanceType | Example Cloud9 EC2 instance type |
 | ExampleC9EnvType | Environment Type. For yourself or to be deployed to a team member 3rd person by you? | 
 | ExampleOwnerArn | if you selected "3rd person" when choosing ExampleC9EnvType please add the OwnerARN of the User or Role |
+| ExampleC9InstanceVolumeSize | The size of the System Volume for the Cloud9 instance |
 
 ### Some tech Details
 This deployment uses Cloudformation to deploy Cloud9 
