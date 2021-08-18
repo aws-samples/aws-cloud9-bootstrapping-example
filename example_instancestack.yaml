@@ -298,7 +298,7 @@ Resources:
             - FILE=$(mktemp) && echo $FILE && echo '#!/bin/bash' > $FILE && echo 'reboot -f --verbose' >> $FILE && at now + 1 minute -f $FILE
             - echo "Bootstrap completed with return code $?"
   
-  ExampleC9BootstrapAssoziation: 
+  ExampleC9BootstrapAssociation: 
     Type: AWS::SSM::Association
     DependsOn: ExampleC9OutputBucket 
     Properties: 
@@ -322,7 +322,7 @@ Resources:
 
   ExampleC9Instance:
     Description: "-"
-    DependsOn: ExampleC9BootstrapAssoziation
+    DependsOn: ExampleC9BootstrapAssociation
     Type: AWS::Cloud9::EnvironmentEC2
     Properties:
       Description: AWS Cloud9 instance for Examples
