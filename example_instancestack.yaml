@@ -24,6 +24,7 @@ Parameters:
   ExampleOwnerArn: 
     Type: String
     Description: The Arn of the Cloud9 Owner to be set if 3rdParty deployment.
+    Default: ""
   ExampleC9InstanceVolumeSize: 
     Type: Number
     Description: The Size in GB of the Cloud9 Instance Volume. 
