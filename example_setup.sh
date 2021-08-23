@@ -14,8 +14,13 @@ if ! [ -x "$(command -v aws)" ]; then
   exit 1
 fi
 
-export AWS_PROFILE=$PROFILE
-export AWS_DEFAULT_REGION=$REGION
+if [ ! -z  "$PROFILE" ]; then
+  export AWS_PROFILE=$PROFILE
+fi
+
+if [ ! -z "$REGION" ]; then
+  export AWS_DEFAULT_REGION=$REGION
+fi
 
 echo Building $PROFILE C9
 
