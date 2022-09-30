@@ -139,7 +139,7 @@ Resources:
         Fn::GetAtt:
         - ExampleC9LambdaExecutionRole
         - Arn
-      Runtime: python3.6
+      Runtime: python3.9
       MemorySize: 256
       Timeout: '600'
       Code:
