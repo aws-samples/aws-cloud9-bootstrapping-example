@@ -228,7 +228,7 @@ Resources:
             - PATH=$PATH:/usr/bin
             - alternatives --set python /usr/bin/python3
             - echo '=== INSTALL and CONFIGURE default software components ==='
-            - sudo -H -u ec2-user bash -c "pip install --user -U boto boto3 botocore awscli aws-sam-cli"
+            - sudo -H -u ec2-user bash -c "pip install --user -U boto boto3 botocore awscli"
             - echo '=== Resizing the Instance volume'
             - !Sub SIZE=${ExampleC9InstanceVolumeSize}
             - !Sub REGION=${AWS::Region}
