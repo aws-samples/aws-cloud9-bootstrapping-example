@@ -226,7 +226,7 @@ Resources:
             - yum -y remove aws-cli; yum -y install sqlite telnet jq strace tree gcc glibc-static python3 python3-pip gettext bash-completion
             - echo '=== CONFIGURE default python version ==='
             - PATH=$PATH:/usr/bin
-            - alternatives --set python /usr/bin/python3.6
+            - alternatives --set python /usr/bin/python3
             - echo '=== INSTALL and CONFIGURE default software components ==='
             - sudo -H -u ec2-user bash -c "pip install --user -U boto boto3 botocore awscli aws-sam-cli"
             - echo '=== Resizing the Instance volume'
@@ -269,26 +269,6 @@ Resources:
                   sudo resize2fs /dev/nvme0n1p1
                 fi
               fi
-            - echo '=== INSTALL and CONFIGURE amplify and setting ENVIRONMENT VARS ==='
-            - sudo -H -u ec2-user bash -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash" && sudo -H -u ec2-user bash -c ". ~/.nvm/nvm.sh && nvm install node" && sudo -H -u ec2-user bash -c ". ~/.nvm/nvm.sh && npm install -g @aws-amplify/cli"
-            - echo '=== INSTALL and CONFIGURE IaC Tools ==='
-            - sudo -H -u ec2-user bash -c ". ~/.nvm/nvm.sh && npm install -g aws-cdk"
-            - curl --silent --location -o terraform_0.12.20_linux_amd64.zip https://releases.hashicorp.com/terraform/0.13.5/terraform_0.13.5_linux_amd64.zip && unzip terraform_0.13.5_linux_amd64.zip && mv -f terraform /usr/bin/
-            - sudo -H -u ec2-user bash -c "pip install --user -U ansible"
-            - echo '=== CONFIGURE kubecrtl and setting ENVIRONMENT VARS ==='
-            - curl --silent --location -o /usr/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
-            - chmod +x /usr/bin/kubectl
-            - sudo -H -u ec2-user bash -c "kubectl completion bash >>  ~/.bash_completion"
-            - sudo -H -u ec2-user bash -c ". /etc/profile.d/bash_completion.sh"
-            - sudo -H -u ec2-user bash -c ". ~/.bash_completion"
-            - echo '=== CONFIGURE eksctl and setting ENVIRONMENT VARS ==='
-            - curl --silent --location "https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-            - mv /tmp/eksctl /usr/bin
-            - sudo -H -u ec2-user bash -c "eksctl completion bash >> ~/.bash_completion"
-            - sudo -H -u ec2-user bash -c ". /etc/profile.d/bash_completion.sh"
-            - sudo -H -u ec2-user bash -c ". ~/.bash_completion"
-            - echo '=== CONFIGURE awscli and setting ENVIRONMENT VARS ==='
-            - echo "complete -C '/usr/local/bin/aws_completer' aws" >> /home/ec2-user/.bashrc
             - mkdir /home/ec2-user/.aws
             - echo '[default]' > /home/ec2-user/.aws/config
             - echo 'output = json' >> /home/ec2-user/.aws/config
