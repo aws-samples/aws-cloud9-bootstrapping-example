@@ -208,8 +208,8 @@ Resources:
       Tags:
         - Key: Environment
           Value: AWS Example
-      Content: Yaml
       DocumentType: Command
+      DocumentFormat: YAML
       Content: 
         schemaVersion: '2.2'
         description: Bootstrap Cloud9 Instance
