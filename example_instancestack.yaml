@@ -203,8 +203,8 @@ Resources:
     DeletionPolicy: Delete
     BucketEncryption: 
       ServerSideEncryptionConfiguration: 
-      - ServerSideEncryptionByDefault:
-          SSEAlgorithm: AES256
+        - ServerSideEncryptionByDefault:
+            SSEAlgorithm: AES256
 
 
   ExampleC9SSMDocument: 
