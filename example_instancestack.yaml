@@ -201,10 +201,13 @@ Resources:
   ExampleC9OutputBucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Delete
-    BucketEncryption: 
-      ServerSideEncryptionConfiguration: 
-        - ServerSideEncryptionByDefault:
-            SSEAlgorithm: AES256
+    Properties: 
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption: 
+        ServerSideEncryptionConfiguration: 
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
 
   ExampleC9SSMDocument: 
