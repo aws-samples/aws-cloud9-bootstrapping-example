@@ -209,7 +209,6 @@ Resources:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
 
-
   ExampleC9SSMDocument: 
     Type: AWS::SSM::Document
     Properties: 
