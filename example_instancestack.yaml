@@ -158,6 +158,10 @@ Resources:
               responseData = {}
 
               status = cfnresponse.SUCCESS
+              
+              if event['RequestType'] == 'Delete':
+                  responseData = {'Success': 'Custom Resource removed'}
+                  cfnresponse.send(event, context, status, responseData, 'CustomResourcePhysicalID')              
           
               if event['RequestType'] == 'Create':
                   try:
