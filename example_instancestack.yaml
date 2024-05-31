@@ -93,6 +93,7 @@ Resources:
             - ec2:AssociateIamInstanceProfile
             - ec2:ModifyInstanceAttribute
             - ec2:ReplaceIamInstanceProfileAssociation
+            - ec2:RebootInstances
             - iam:ListInstanceProfiles
             - iam:PassRole
             Resource: "*"
@@ -192,6 +193,10 @@ Resources:
                       try:
                         response = ec2.associate_iam_instance_profile(IamInstanceProfile=iam_instance_profile, InstanceId=instance['InstanceId'])
                         # logger.info('response - associate_iam_instance_profile: {}'.format(response))
+                        r_ec2 = boto3.resource('ec2')
+
+                        response = ec2.reboot_instances(InstanceIds=[instance['InstanceId']], DryRun=False)
+
                       except botocore.exceptions.ClientError as error:
                         if error.response['Error']['Code'] == 'IncorrectState' and f"There is an existing association for instance {instance['InstanceId']}" == error.response['Error']['Message']:
                           # logger.warn("Already Associated")
