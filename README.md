@@ -1,4 +1,6 @@
-## Cloud 9 Bootstrapping 
+## Cloud9 Bootstrapping 
+
+# AWS Cloud9 might not be available to new customers, please read: https://aws.amazon.com/de/blogs/devops/how-to-migrate-from-aws-cloud9-to-aws-ide-toolkits-or-aws-cloudshell/" 
 
 ### Summary
 This example Cloudformation Deployment shows how to deploy an AWS Cloud9 Environment for yourself or team members and run an automated bootstrap so you can install software components needed on the fly. 
