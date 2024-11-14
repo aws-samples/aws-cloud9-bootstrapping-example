@@ -426,7 +426,6 @@ Resources:
                   log "Configuring Python and AWS CLI"
                   {
                     PATH=$PATH:/usr/bin
-                    alternatives --set python /usr/bin/python3
                     sudo -H -u ec2-user bash -c "pip install --user -U boto boto3 botocore awscli"
                     
                     mkdir -p /home/ec2-user/.aws
@@ -435,45 +434,68 @@ Resources:
                   } || handle_error "Failed to configure Python and AWS CLI"
                   
                   # 4. Volume Resizing
-                  log "Starting volume resize operation"
+                  log "Checking current volume size"
                   {
-                    INSTANCEID=$(get_metadata "instance-id")
-                    VOLUMEID=$(sudo aws ec2 describe-instances \
-                      --instance-id $INSTANCEID \
-                      --query "Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId" \
-                      --output text --region $REGION)
+                    # Get current volume size in GB
+                    CURRENT_SIZE=$(df -BG / | awk 'NR==2 {print $2}' | sed 's/G//')
+                    TARGET_SIZE={{ ExampleC9InstanceVolumeSize }}
                     
-                    log "Modifying volume $VOLUMEID"
-                    sudo aws ec2 modify-volume --volume-id $VOLUMEID --size {{ ExampleC9InstanceVolumeSize }} --region $REGION
+                    log "Current size: ${CURRENT_SIZE}GB, Target size: ${TARGET_SIZE}GB"
                     
-                    while [ \
-                      "$(sudo aws ec2 describe-volumes-modifications \
-                        --volume-id $VOLUMEID \
-                        --filters Name=modification-state,Values="optimizing","completed" \
-                        --query "length(VolumesModifications)" \
-                        --output text --region $REGION)" != "1" ]; do
-                      sleep 1
-                    done
-                    
-                    DEVICE_PATH=$(readlink -f /dev/xvda)
-                    if [ "$DEVICE_PATH" = "/dev/xvda" ]; then
-                      sudo growpart /dev/xvda 1
-                      STR=$(cat /etc/os-release)
-                      if [[ "$STR" =~ "VERSION_ID=\"2\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2022\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2023\"" ]]; then
-                        sudo xfs_growfs -d /
-                      else
-                        sudo resize2fs /dev/xvda1
-                      fi
+                    # Only proceed if current size is less than target size
+                    if [ "${CURRENT_SIZE}" -lt "${TARGET_SIZE}" ]; then
+                      log "Starting volume resize operation"
+                      {
+                        INSTANCEID=$(get_metadata "instance-id")
+                        VOLUMEID=$(sudo aws ec2 describe-instances \
+                          --instance-id $INSTANCEID \
+                          --query "Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId" \
+                          --output text --region $REGION) || exit 3010
+                        
+                        log "Modifying volume $VOLUMEID"
+                        sudo aws ec2 modify-volume --volume-id $VOLUMEID --size {{ ExampleC9InstanceVolumeSize }} --region $REGION || exit 3010
+                        
+                        while [ \
+                          "$(sudo aws ec2 describe-volumes-modifications \
+                            --volume-id $VOLUMEID \
+                            --filters Name=modification-state,Values="optimizing","completed" \
+                            --query "length(VolumesModifications)" \
+                            --output text --region $REGION)" != "1" ]; do
+                          sleep 1
+                        done
+                        
+                        DEVICE_PATH=$(readlink -f /dev/xvda)
+                        if [ "$DEVICE_PATH" = "/dev/xvda" ]; then
+                          sudo growpart /dev/xvda 1 || exit 3010
+                          STR=$(cat /etc/os-release)
+                          if [[ "$STR" =~ "VERSION_ID=\"2\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2022\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2023\"" ]]; then
+                            sudo xfs_growfs -d / || exit 3010
+                          else
+                            sudo resize2fs /dev/xvda1 || exit 3010
+                          fi
+                        else
+                          sudo growpart /dev/nvme0n1 1 || exit 3010
+                          STR=$(cat /etc/os-release)
+                          if [[ "$STR" =~ "VERSION_ID=\"2\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2022\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2023\"" ]]; then
+                            sudo xfs_growfs -d / || exit 3010
+                          else
+                            sudo resize2fs /dev/nvme0n1p1 || exit 3010
+                          fi
+                        fi
+                        
+                        log "Volume resize completed successfully. Rebooting..."
+                        exit 3010
+                      } || {
+                        log "Error in volume resize operations"
+                        exit 3010
+                      }
                     else
-                      sudo growpart /dev/nvme0n1 1
-                      STR=$(cat /etc/os-release)
-                      if [[ "$STR" =~ "VERSION_ID=\"2\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2022\"" ]] || [[ "$STR" =~ "VERSION_ID=\"2023\"" ]]; then
-                        sudo xfs_growfs -d /
-                      else
-                        sudo resize2fs /dev/nvme0n1p1
-                      fi
+                      log "Current volume size is adequate. Skipping resize operation."
                     fi
-                  } || handle_error "Volume resize failed"
+                  } || {
+                    log "Error in volume resize block"
+                    exit 3010
+                  }
                   
                   # 5. AWS Configuration
                   log "Setting up additional AWS configuration"
