@@ -53,7 +53,6 @@ Resources:
           - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AdministratorAccess
-        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
       Path: "/"
 
   ExampleC9LambdaExecutionRole:
@@ -392,20 +391,8 @@ Resources:
                   
                   # Function to get instance metadata
                   get_metadata() {
-                    local metadata_endpoint="http://169.254.169.254/latest/meta-data"
-                    local token_endpoint="http://169.254.169.254/latest/api/token"
-                    local token
-                    
-                    token=$(curl -X PUT -H "X-aws-ec2-metadata-token-ttl-seconds: 21600" "$token_endpoint" 2>/dev/null) || {
-                      log "Failed to get IMDSv2 token, falling back to IMDSv1"
-                      token=""
-                    }
-                    
-                    if [ -n "$token" ]; then
-                      curl -H "X-aws-ec2-metadata-token: $token" "$metadata_endpoint/$1" 2>/dev/null
-                    else
-                      curl -s "$metadata_endpoint/$1" 2>/dev/null
-                    fi
+                    TOKEN=`sudo curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` \
+                    && sudo curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/$1 2>/dev/null
                   }
                   
                   # Get instance region
@@ -451,16 +438,16 @@ Resources:
                   log "Starting volume resize operation"
                   {
                     INSTANCEID=$(get_metadata "instance-id")
-                    VOLUMEID=$(aws ec2 describe-instances \
+                    VOLUMEID=$(sudo aws ec2 describe-instances \
                       --instance-id $INSTANCEID \
                       --query "Reservations[0].Instances[0].BlockDeviceMappings[0].Ebs.VolumeId" \
                       --output text --region $REGION)
                     
                     log "Modifying volume $VOLUMEID"
-                    aws ec2 modify-volume --volume-id $VOLUMEID --size {{ ExampleC9InstanceVolumeSize }} --region $REGION
+                    sudo aws ec2 modify-volume --volume-id $VOLUMEID --size {{ ExampleC9InstanceVolumeSize }} --region $REGION
                     
                     while [ \
-                      "$(aws ec2 describe-volumes-modifications \
+                      "$(sudo aws ec2 describe-volumes-modifications \
                         --volume-id $VOLUMEID \
                         --filters Name=modification-state,Values="optimizing","completed" \
                         --query "length(VolumesModifications)" \
