@@ -1,7 +1,7 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
 Description: AWS CloudFormation template for dynamic Cloud 9 setups. Creates a Cloud9
-  bootstraps the instance.
+  bootstraps the instance. ONLY FOR TESTING - enables Instance with Administrative permissions! 
 Parameters:
   ExampleC9InstanceType:
     Description: Example Cloud9 instance type

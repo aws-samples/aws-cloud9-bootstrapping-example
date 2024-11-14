@@ -2,6 +2,9 @@
 
 # AWS Cloud9 might not be available to new customers, please read: https://aws.amazon.com/de/blogs/devops/how-to-migrate-from-aws-cloud9-to-aws-ide-toolkits-or-aws-cloudshell/" 
 
+### Disclaimber
+Only or testing purpose, do not use in production. - Enables Admin access via AWS Cloud9 within your AWS Account! - 
+
 ### Summary
 This example Cloudformation Deployment shows how to deploy an AWS Cloud9 Environment for yourself or team members and run an automated bootstrap so you can install software components needed on the fly. 
 This is usefull for workshops, unified deployments, etc. 
